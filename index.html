@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>猫狗品种智能识别系统 - 首页</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            min-height: 100vh;
+        }
+        .header {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .header-title {
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .user-info {
+            color: white;
+            font-size: 14px;
+        }
+        .user-info span {
+            color: #94a3b8;
+        }
+        .logout-btn {
+            padding: 8px 20px;
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+        .admin-btn {
+            padding: 8px 20px;
+            background: rgba(99, 179, 237, 0.2);
+            color: #63b3ed;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .admin-btn:hover {
+            background: rgba(99, 179, 237, 0.3);
+        }
+        .main-content {
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .page-title {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .page-title h1 {
+            color: white;
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+        .page-title p {
+            color: #94a3b8;
+            font-size: 16px;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-5px);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin: 0 auto 20px;
+        }
+        .feature-card h3 {
+            color: white;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .feature-card p {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 40px;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+        }
+        .stat-card .number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #3b82f6;
+            margin-bottom: 5px;
+        }
+        .stat-card .label {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+        .admin-section {
+            display: none;
+        }
+        .admin-section.active {
+            display: block;
+        }
+        .section-title {
+            color: white;
+            font-size: 20px;
+            margin-bottom: 20px;
+            padding-left: 10px;
+            border-left: 4px solid #3b82f6;
+        }
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .modal-header h3 {
+            color: white;
+            font-size: 18px;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .close-btn:hover {
+            color: white;
+        }
+        .modal-body {
+            padding: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #3b82f6;
+        }
+        .form-group textarea {
+            resize: none;
+        }
+        .form-group select option {
+            background: #1e293b;
+            color: white;
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 20px 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .btn {
+            padding: 10px 24px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+        }
+        .btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .btn-submit {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <div class="logo-icon">DC</div>
+            <div class="header-title">猫狗品种智能识别系统</div>
+        </div>
+        <div class="header-right">
+            <div class="user-info">
+                欢迎, <span id="username">用户</span> | 角色: <span id="role">普通用户</span>
+            </div>
+            <button class="admin-btn" id="adminBtn" onclick="goToAdmin()">管理后台</button>
+            <button class="logout-btn" onclick="logout()">退出登录</button>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="page-title">
+            <h1>🐾 智能识别平台</h1>
+            <p>基于深度学习技术，精准识别猫狗品种</p>
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature-card" onclick="navigateTo('img_predict.html')">
+                <div class="feature-icon">🖼️</div>
+                <h3>单图识别</h3>
+                <p>上传单张图片，快速识别宠物品种</p>
+            </div>
+            <div class="feature-card" onclick="navigateTo('video_track.html')">
+                <div class="feature-icon">🎬</div>
+                <h3>视频识别</h3>
+                <p>上传视频，实时追踪识别宠物品种</p>
+            </div>
+            <div class="feature-card" onclick="navigateTo('batch_predict.html')">
+                <div class="feature-icon">📁</div>
+                <h3>批量识别</h3>
+                <p>批量上传多张图片，高效识别</p>
+            </div>
+            <div class="feature-card" onclick="navigateTo('record.html')">
+                <div class="feature-icon">📊</div>
+                <h3>识别记录</h3>
+                <p>查看历史识别记录和结果</p>
+            </div>
+            <div class="feature-card" onclick="navigateTo('agent.html')">
+                <div class="feature-icon">🤖</div>
+                <h3>智能助手</h3>
+                <p>智能问答和图片识别，解答宠物问题</p>
+            </div>
+            <div class="feature-card admin-section" id="dataAnalysisCard" onclick="navigateTo('data_analysis.html')">
+                <div class="feature-icon">📈</div>
+                <h3>数据分析</h3>
+                <p>查看系统数据统计和分析报告</p>
+            </div>
+            <div class="feature-card" onclick="openFeedbackModal()">
+                <div class="feature-icon">💬</div>
+                <h3>用户反馈</h3>
+                <p>提交您的建议和问题，帮助我们改进</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 用户反馈弹窗 -->
+    <div id="feedbackModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>💬 用户反馈</h3>
+                <button class="close-btn" onclick="closeFeedbackModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>反馈类型</label>
+                    <select id="feedbackType">
+                        <option value="suggestion">功能建议</option>
+                        <option value="bug">问题反馈</option>
+                        <option value="other">其他</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>反馈内容</label>
+                    <textarea id="feedbackContent" rows="5" placeholder="请描述您的问题或建议..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeFeedbackModal()">取消</button>
+                <button class="btn btn-submit" onclick="submitFeedback()">提交反馈</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = 'http://127.0.0.1:5000';
+        
+        function checkLogin() {
+            const user = localStorage.getItem('user');
+            if (!user) {
+                window.location.href = 'login.html';
+                return null;
+            }
+            return JSON.parse(user);
+        }
+        
+        const user = checkLogin();
+        
+        if (user) {
+            document.getElementById('username').textContent = user.username;
+            document.getElementById('role').textContent = user.role === 'admin' ? '管理员' : '普通用户';
+            
+            if (user.role === 'admin') {
+                document.getElementById('dataAnalysisCard').classList.add('active');
+                document.getElementById('adminBtn').style.display = 'block';
+            } else {
+                document.getElementById('adminBtn').style.display = 'none';
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+        
+        function goToAdmin() {
+            window.location.href = 'admin.html';
+        }
+        
+        function navigateTo(page) {
+            window.location.href = page;
+        }
+        
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/api/stats`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('totalRecords').textContent = result.total || 0;
+                    document.getElementById('imageCount').textContent = result.image_count || 0;
+                    document.getElementById('videoCount').textContent = result.video_count || 0;
+                    document.getElementById('accuracy').textContent = result.accuracy ? result.accuracy + '%' : '0%';
+                }
+            } catch (error) {
+                console.log('加载统计数据失败:', error);
+            }
+        }
+        
+        loadStats();
+        
+        // 用户反馈功能
+        function openFeedbackModal() {
+            document.getElementById('feedbackModal').classList.add('show');
+        }
+        
+        function closeFeedbackModal() {
+            document.getElementById('feedbackModal').classList.remove('show');
+            document.getElementById('feedbackContent').value = '';
+            document.getElementById('feedbackType').value = 'suggestion';
+        }
+        
+        async function submitFeedback() {
+            const content = document.getElementById('feedbackContent').value.trim();
+            const type = document.getElementById('feedbackType').value;
+            
+            if (!content) {
+                alert('请输入反馈内容');
+                return;
+            }
+            
+            try {
+                const user = JSON.parse(localStorage.getItem('user'));
+                const response = await fetch(`${API_BASE}/api/submit_feedback`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        uid: user.username,
+                        feedback_type: type,
+                        content: content
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('反馈提交成功，感谢您的建议！');
+                    closeFeedbackModal();
+                } else {
+                    alert('提交失败：' + result.msg);
+                }
+            } catch (error) {
+                console.error('提交反馈失败:', error);
+                alert('提交反馈失败，请稍后重试');
+            }
+        }
+    </script>
+</body>
+</html>

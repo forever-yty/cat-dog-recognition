@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>纠错记录 - PetWise 管理后台</title>
+    <link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">PetWise 管理后台</div>
+        <div class="sidebar-menu">
+            <div class="menu-item" onclick="navigateTo('dashboard')"><span class="menu-icon">📊</span><span>仪表盘</span></div>
+            <div class="menu-item" onclick="navigateTo('users')"><span class="menu-icon">👥</span><span>用户管理</span></div>
+            <div class="menu-item" onclick="navigateTo('pets')"><span class="menu-icon">🐾</span><span>大模型管理</span></div>
+            <div class="menu-item" onclick="navigateTo('knowledge')"><span class="menu-icon">📚</span><span>知识库</span></div>
+            <div class="menu-item" onclick="navigateTo('sample')"><span class="menu-icon">🧪</span><span>难样本</span></div>
+            <div class="menu-item" onclick="navigateTo('statistics')"><span class="menu-icon">📈</span><span>数据统计</span></div>
+            <div class="menu-item" onclick="navigateTo('logs')"><span class="menu-icon">📋</span><span>系统日志</span></div>
+            <div class="menu-item" onclick="navigateTo('config')"><span class="menu-icon">⚙️</span><span>系统配置</span></div>
+            <div class="menu-item" onclick="navigateTo('network')"><span class="menu-icon">🌐</span><span>网络配置</span></div>
+            <div class="menu-item" onclick="navigateTo('sensitive')"><span class="menu-icon">🔒</span><span>敏感词</span></div>
+            <div class="menu-item active" onclick="navigateTo('errors')"><span class="menu-icon">❌</span><span>纠错记录</span></div>
+            <div class="menu-item" onclick="navigateTo('feedback')"><span class="menu-icon">💬</span><span>用户反馈</span></div>
+            <div class="menu-item" onclick="navigateTo('notice')"><span class="menu-icon">📢</span><span>公告管理</span></div>
+        </div>
+    </div>
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="page-title">纠错记录</div>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <span style="color: #4a5568; font-size: 14px;">admin</span>
+                <button class="logout-btn" onclick="logout()">退出</button>
+            </div>
+        </div>
+        <div class="content">
+            <div class="card">
+                <div class="card-title">待审核纠错列表</div>
+                <table>
+                    <thead>
+                        <tr><th>纠错ID</th><th>用户</th><th>原识别结果</th><th>正确结果</th><th>状态</th><th>提交时间</th><th>操作</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>#EC001</td><td>用户A</td><td>金毛</td><td>拉布拉多</td><td><span class="status-badge status-pending">待审核</span></td><td>2024-01-15 10:30</td><td><button class="btn btn-approve">通过</button><button class="btn btn-reject">拒绝</button></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="assets/js/admin.js"></script>
+</body>
+</html>

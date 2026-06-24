@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据统计 - PetWise 管理后台</title>
+    <link rel="stylesheet" href="assets/css/admin.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">PetWise 管理后台</div>
+        <div class="sidebar-menu">
+            <div class="menu-item" onclick="navigateTo('dashboard')"><span class="menu-icon">📊</span><span>仪表盘</span></div>
+            <div class="menu-item" onclick="navigateTo('users')"><span class="menu-icon">👥</span><span>用户管理</span></div>
+            <div class="menu-item" onclick="navigateTo('pets')"><span class="menu-icon">🐾</span><span>大模型管理</span></div>
+            <div class="menu-item" onclick="navigateTo('knowledge')"><span class="menu-icon">📚</span><span>知识库</span></div>
+            <div class="menu-item" onclick="navigateTo('sample')"><span class="menu-icon">🧪</span><span>难样本</span></div>
+            <div class="menu-item active" onclick="navigateTo('statistics')"><span class="menu-icon">📈</span><span>数据统计</span></div>
+            <div class="menu-item" onclick="navigateTo('logs')"><span class="menu-icon">📋</span><span>系统日志</span></div>
+            <div class="menu-item" onclick="navigateTo('config')"><span class="menu-icon">⚙️</span><span>系统配置</span></div>
+            <div class="menu-item" onclick="navigateTo('network')"><span class="menu-icon">🌐</span><span>网络配置</span></div>
+            <div class="menu-item" onclick="navigateTo('sensitive')"><span class="menu-icon">🔒</span><span>敏感词</span></div>
+            <div class="menu-item" onclick="navigateTo('feedback')"><span class="menu-icon">💬</span><span>用户反馈</span></div>
+            <div class="menu-item" onclick="navigateTo('notice')"><span class="menu-icon">📢</span><span>公告管理</span></div>
+        </div>
+    </div>
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="page-title">数据统计</div>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <span style="color: #4a5568; font-size: 14px;">admin</span>
+                <button class="logout-btn" onclick="logout()">退出</button>
+            </div>
+        </div>
+        <div class="content">
+            <div class="charts-grid">
+                <div class="card">
+                    <div class="card-title">📈 识别次数趋势</div>
+                    <div class="chart-container">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📉 模型损失函数</div>
+                    <div class="chart-container">
+                        <canvas id="lossChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">统计概览</div>
+                <div class="stats-grid">
+                    <div class="stat-item"><div class="stat-value" id="stat-recognition">0</div><div class="stat-label">本月识别</div></div>
+                    <div class="stat-item"><div class="stat-value" id="stat-users">0</div><div class="stat-label">活跃用户</div></div>
+                    <div class="stat-item"><div class="stat-value" id="stat-accuracy">0%</div><div class="stat-label">识别准确率</div></div>
+                    <div class="stat-item"><div class="stat-value" id="stat-feedback">0</div><div class="stat-label">待处理反馈</div></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">🐱🐶 猫狗识别比例</div>
+                <div class="chart-container">
+                    <canvas id="catDogChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">🐾 品种识别分布</div>
+                <div class="chart-container">
+                    <canvas id="breedChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="assets/js/admin.js"></script>
+    <script src="assets/js/api.js"></script>
+    <script>
+        let trendChart, lossChart, catDogChart, breedChart;
+
+        function createTrendChart(labels, data) {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '识别次数',
+                        data: data,
+                        borderColor: '#63b3ed',
+                        backgroundColor: 'rgba(99, 179, 237, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#63b3ed',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'top' },
+                        tooltip: { backgroundColor: '#2d3748', titleColor: '#fff', bodyColor: '#fff', padding: 12, cornerRadius: 8 }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(0, 0, 0, 0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function createLossChart(epochs, trainLoss, valLoss) {
+            const ctx = document.getElementById('lossChart').getContext('2d');
+            lossChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: epochs.map(e => `Epoch ${e}`),
+                    datasets: [
+                        {
+                            label: '训练损失',
+                            data: trainLoss,
+                            borderColor: '#f56565',
+                            backgroundColor: 'rgba(245, 101, 101, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#f56565',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 3
+                        },
+                        {
+                            label: '验证损失',
+                            data: valLoss,
+                            borderColor: '#48bb78',
+                            backgroundColor: 'rgba(72, 187, 120, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#48bb78',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'top' },
+                        tooltip: { backgroundColor: '#2d3748', titleColor: '#fff', bodyColor: '#fff', padding: 12, cornerRadius: 8 }
+                    },
+                    scales: {
+                        y: { beginAtZero: false, grid: { color: 'rgba(0, 0, 0, 0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function createCatDogChart(catCount, dogCount) {
+            const ctx = document.getElementById('catDogChart').getContext('2d');
+            catDogChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['猫', '狗'],
+                    datasets: [{
+                        data: [catCount, dogCount],
+                        backgroundColor: ['#a855f7', '#22c55e'],
+                        borderColor: ['#9333ea', '#16a34a'],
+                        borderWidth: 2,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'right' },
+                        tooltip: {
+                            backgroundColor: '#2d3748',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            padding: 12,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.raw / total) * 100).toFixed(1);
+                                    return `${context.label}: ${context.raw} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createBreedChart(labels, data) {
+            const ctx = document.getElementById('breedChart').getContext('2d');
+            const colors = ['#63b3ed', '#a855f7', '#22c55e', '#f56565', '#f6ad55', '#fc8181', '#9f7aea', '#48bb78'];
+            breedChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '识别次数',
+                        data: data,
+                        backgroundColor: colors.slice(0, labels.length),
+                        borderColor: colors.slice(0, labels.length).map(c => c),
+                        borderWidth: 1,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { backgroundColor: '#2d3748', titleColor: '#fff', bodyColor: '#fff', padding: 12, cornerRadius: 8 }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(0, 0, 0, 0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        async function loadStatistics() {
+            try {
+                const result = await apiRequest('/api/statistics');
+                if (result.success && result.data) {
+                    const data = result.data;
+                    document.getElementById('stat-recognition').textContent = data.totalRecords || 0;
+                    document.getElementById('stat-accuracy').textContent = data.avgAccuracy ? data.avgAccuracy + '%' : '0%';
+
+                    if (data.dailyTrend && data.dailyTrend.labels && data.dailyTrend.data) {
+                        createTrendChart(data.dailyTrend.labels, data.dailyTrend.data);
+                    } else {
+                        createTrendChart(['周一', '周二', '周三', '周四', '周五', '周六', '周日'], [0, 0, 0, 0, 0, 0, 0]);
+                    }
+
+                    if (data.lossData && data.lossData.epochs && data.lossData.trainLoss) {
+                        createLossChart(data.lossData.epochs, data.lossData.trainLoss, data.lossData.valLoss);
+                    }
+
+                    if (data.catDogRatio) {
+                        createCatDogChart(data.catDogRatio.cat || 0, data.catDogRatio.dog || 0);
+                    } else {
+                        createCatDogChart(0, 0);
+                    }
+
+                    if (data.breedDistribution && data.breedDistribution.labels) {
+                        createBreedChart(data.breedDistribution.labels, data.breedDistribution.data);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load statistics:', error);
+            }
+
+            try {
+                const result = await apiRequest('/api/admin/stats');
+                if (result.success) {
+                    document.getElementById('stat-users').textContent = result.total_users || 0;
+                    document.getElementById('stat-feedback').textContent = result.feedback_count || 0;
+                }
+            } catch (error) {
+                console.error('Failed to load admin stats:', error);
+            }
+        }
+
+        window.addEventListener('load', loadStatistics);
+    </script>
+</body>
+</html>

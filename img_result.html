@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>猫狗品种智能识别系统 - 识别结果</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #3b82f6 50%, #0f172a 100%);
+            min-height: 100vh;
+        }
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 220px;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 30px 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .logo {
+            padding: 0 20px 30px;
+            text-align: center;
+        }
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 15px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .logo h2 {
+            color: white;
+            font-size: 16px;
+        }
+        .nav-menu {
+            flex: 1;
+        }
+        .nav-item {
+            display: block;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            padding: 15px 25px;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            border-left: 3px solid transparent;
+        }
+        .nav-item:hover {
+            background: rgba(59, 130, 246, 0.2);
+            color: white;
+        }
+        .nav-item.active {
+            background: rgba(59, 130, 246, 0.3);
+            color: white;
+            border-left-color: #3b82f6;
+        }
+        .nav-item .icon {
+            margin-right: 10px;
+        }
+        .user-info {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: #3b82f6;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-right: 10px;
+        }
+        .logout-btn {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .main {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 50px 40px;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+        .card h1 {
+            color: #1e293b;
+            font-size: 28px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .result-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        .image-box {
+            text-align: center;
+        }
+        .image-box h3 {
+            color: #1e293b;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        .result-img {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        .breed-list {
+            background: rgba(241, 245, 249, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .breed-list h3 {
+            color: #1e293b;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        .breed-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        .breed-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            margin-right: 15px;
+        }
+        .breed-name {
+            color: #1e293b;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        .breed-tag {
+            margin-left: auto;
+            padding: 4px 12px;
+            background: #10b981;
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        .breed-tag.ai {
+            background: #f59e0b;
+        }
+        .breed-tag.mix {
+            background: #8b5cf6;
+        }
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
+        }
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 14px 36px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        .btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+        }
+        .btn.secondary {
+            background: #64748b;
+        }
+        .btn.secondary:hover {
+            background: #475569;
+        }
+        .admin-only {
+            display: none;
+        }
+        @media (max-width: 768px) {
+            .result-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">DC</div>
+                <h2>猫狗识别系统</h2>
+            </div>
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item"><span class="icon">🏠</span>功能首页</a>
+                <a href="img_predict.html" class="nav-item active"><span class="icon">📷</span>图像识别</a>
+                <a href="video_track.html" class="nav-item"><span class="icon">🎬</span>视频识别</a>
+                <a href="batch_predict.html" class="nav-item"><span class="icon">📁</span>批量识别</a>
+                <a href="record.html" class="nav-item"><span class="icon">📋</span>识别记录</a>
+                <a href="data_analysis.html" class="nav-item admin-only"><span class="icon">📊</span>数据分析</a>
+            </nav>
+            <div class="user-info">
+                <div style="display: flex; align-items: center;">
+                    <div class="user-avatar">👤</div>
+                    <div>
+                        <div class="user-name" id="userName">用户</div>
+                        <div class="user-role" id="userRole">普通用户</div>
+                    </div>
+                </div>
+                <span class="logout-btn" onclick="logout()">退出登录</span>
+            </div>
+        </div>
+        
+        <div class="main">
+            <div class="card">
+                <h1>识别结果</h1>
+                <div class="result-container">
+                    <div class="image-box">
+                        <h3>识别结果图</h3>
+                        <img id="resultImg" class="result-img" src="" alt="识别结果">
+                    </div>
+                    <div class="breed-list">
+                        <h3>识别到的品种</h3>
+                        <div id="breedList"></div>
+                    </div>
+                </div>
+                <div class="actions">
+                    <a href="img_predict.html" class="btn">继续识别</a>
+                    <button class="btn secondary" onclick="downloadResult()">下载结果</button>
+                    <a href="record.html" class="btn secondary">查看记录</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = 'http://127.0.0.1:5000';
+        
+        // 检查登录状态
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) {
+            window.location.href = 'login.html';
+        } else {
+            document.getElementById('userName').textContent = user.username;
+            document.getElementById('userRole').textContent = user.role === 'admin' ? '管理员' : '普通用户';
+            if (user.role === 'admin') {
+                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+            }
+        }
+        
+        // 获取识别结果
+        const result = JSON.parse(sessionStorage.getItem('predictResult'));
+        if (result && result.success) {
+            document.getElementById('resultImg').src = `${API_BASE}${result.result_url}`;
+            
+            const breedList = document.getElementById('breedList');
+            result.breeds.forEach((breed, index) => {
+                const item = document.createElement('div');
+                item.className = 'breed-item';
+                
+                let tagClass = '';
+                let tagText = '';
+                if (breed.includes('AI生成')) {
+                    tagClass = 'ai';
+                    tagText = 'AI生成';
+                } else if (breed.includes('混血')) {
+                    tagClass = 'mix';
+                    tagText = '混血';
+                } else {
+                    tagText = '已识别';
+                }
+                
+                item.innerHTML = `
+                    <div class="breed-icon">${index + 1}</div>
+                    <div class="breed-name">${breed}</div>
+                    <span class="breed-tag ${tagClass}">${tagText}</span>
+                `;
+                breedList.appendChild(item);
+            });
+        } else {
+            window.location.href = 'img_predict.html';
+        }
+        
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+        
+        function downloadResult() {
+            const img = document.getElementById('resultImg');
+            const link = document.createElement('a');
+            link.href = img.src;
+            link.download = '识别结果.jpg';
+            link.click();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户管理 - PetWise 管理后台</title>
+    <link rel="stylesheet" href="assets/css/admin.css">
+    <style>
+        .search-bar { display: flex; gap: 10px; }
+        .search-input { flex: 1; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; }
+        .btn-danger { background: #fc8181; color: white; }
+        .btn-edit { background: #63b3ed; color: white; padding: 5px 12px; font-size: 12px; }
+        .role-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+        .role-admin { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .role-user { background: rgba(99,179,237,0.15); color: #63b3ed; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">PetWise 管理后台</div>
+        <div class="sidebar-menu">
+            <div class="menu-item" onclick="navigateTo('dashboard')"><span class="menu-icon">📊</span><span>仪表盘</span></div>
+            <div class="menu-item active" onclick="navigateTo('users')"><span class="menu-icon">👥</span><span>用户管理</span></div>
+            <div class="menu-item" onclick="navigateTo('pets')"><span class="menu-icon">🐾</span><span>大模型管理</span></div>
+            <div class="menu-item" onclick="navigateTo('knowledge')"><span class="menu-icon">📚</span><span>知识库</span></div>
+            <div class="menu-item" onclick="navigateTo('sample')"><span class="menu-icon">🧪</span><span>难样本</span></div>
+            <div class="menu-item" onclick="navigateTo('statistics')"><span class="menu-icon">📈</span><span>数据统计</span></div>
+            <div class="menu-item" onclick="navigateTo('logs')"><span class="menu-icon">📋</span><span>系统日志</span></div>
+            <div class="menu-item" onclick="navigateTo('config')"><span class="menu-icon">⚙️</span><span>系统配置</span></div>
+            <div class="menu-item" onclick="navigateTo('network')"><span class="menu-icon">🌐</span><span>网络配置</span></div>
+            <div class="menu-item" onclick="navigateTo('sensitive')"><span class="menu-icon">🔒</span><span>敏感词</span></div>
+            <div class="menu-item" onclick="navigateTo('feedback')"><span class="menu-icon">💬</span><span>用户反馈</span></div>
+            <div class="menu-item" onclick="navigateTo('notice')"><span class="menu-icon">📢</span><span>公告管理</span></div>
+        </div>
+    </div>
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="page-title">用户管理</div>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <span style="color: #4a5568; font-size: 14px;">admin</span>
+                <button class="logout-btn" onclick="logout()">退出</button>
+            </div>
+        </div>
+        <div class="content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">用户列表</div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-primary" onclick="showAddModal()">添加用户</button>
+                        <div class="search-bar" style="margin-bottom: 0;">
+                            <input type="text" class="search-input" id="searchInput" placeholder="搜索用户名..." onkeyup="searchUsers()">
+                            <button class="btn btn-primary" onclick="loadUsers()">刷新</button>
+                        </div>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr><th>ID</th><th>用户名</th><th>角色</th><th>注册时间</th><th>最后登录</th><th>操作</th></tr>
+                    </thead>
+                    <tbody id="userTable">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-title" id="modalTitle">添加用户</div>
+            <input type="hidden" id="editId">
+            <div class="form-group">
+                <label class="form-label">用户名</label>
+                <input type="text" class="form-input" id="username" placeholder="输入用户名">
+            </div>
+            <div class="form-group">
+                <label class="form-label">密码</label>
+                <input type="password" class="form-input" id="password" placeholder="输入密码（编辑时留空则不修改密码）">
+            </div>
+            <div class="form-group">
+                <label class="form-label">角色</label>
+                <select class="form-select" id="role">
+                    <option value="user">普通用户</option>
+                    <option value="admin">管理员</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveUser()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/admin.js"></script>
+    <script src="assets/js/api.js"></script>
+    <script>
+        let currentSearch = '';
+        let allUsers = [];
+
+        async function loadUsers() {
+            try {
+                const result = await apiRequest('/api/users');
+                if (result.success) {
+                    allUsers = result.data;
+                    displayUsers(allUsers);
+                } else {
+                    allUsers = getMockUsers();
+                    displayUsers(allUsers);
+                }
+            } catch (error) {
+                console.error('加载用户失败:', error);
+                allUsers = getMockUsers();
+                displayUsers(allUsers);
+            }
+        }
+
+        function getMockUsers() {
+            return [
+                { id: 1, username: 'admin', role: 'admin', created_at: '2024-01-01T10:00:00', last_login: '2024-01-15T09:30:00' },
+                { id: 2, username: 'user1', role: 'user', created_at: '2024-01-05T14:20:00', last_login: '2024-01-14T16:45:00' },
+                { id: 3, username: 'user2', role: 'user', created_at: '2024-01-08T09:15:00', last_login: '2024-01-13T11:20:00' },
+                { id: 4, username: 'user3', role: 'user', created_at: '2024-01-10T15:30:00', last_login: null },
+            ];
+        }
+
+        function displayUsers(users) {
+            const table = document.getElementById('userTable');
+            table.innerHTML = '';
+
+            const filtered = users.filter(user => {
+                return !currentSearch || user.username.includes(currentSearch);
+            });
+
+            if (filtered.length === 0) {
+                table.innerHTML = '<tr><td colspan="6" class="no-data">暂无用户数据</td></tr>';
+                return;
+            }
+
+            filtered.forEach(user => {
+                const row = document.createElement('tr');
+                const roleClass = user.role === 'admin' ? 'role-admin' : 'role-user';
+                const roleText = user.role === 'admin' ? '管理员' : '普通用户';
+                
+                row.innerHTML = `
+                    <td>#${user.id}</td>
+                    <td>${user.username}</td>
+                    <td><span class="role-badge ${roleClass}">${roleText}</span></td>
+                    <td>${formatTime(user.created_at)}</td>
+                    <td>${user.last_login ? formatTime(user.last_login) : '未登录'}</td>
+                    <td>
+                        <button class="btn btn-edit" onclick="showEditModal(${user.id})">编辑</button>
+                        ${user.role !== 'admin' ? `<button class="btn btn-danger" style="padding: 5px 12px; font-size: 12px;" onclick="deleteUser(${user.id})">删除</button>` : ''}
+                    </td>
+                `;
+                table.appendChild(row);
+            });
+        }
+
+        function formatTime(timeStr) {
+            if (!timeStr) return '';
+            const date = new Date(timeStr);
+            return date.toLocaleString('zh-CN', {
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function searchUsers() {
+            currentSearch = document.getElementById('searchInput').value;
+            displayUsers(allUsers);
+        }
+
+        function showAddModal() {
+            document.getElementById('modalTitle').textContent = '添加用户';
+            document.getElementById('editId').value = '';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('role').value = 'user';
+            document.getElementById('modalOverlay').classList.add('show');
+        }
+
+        async function showEditModal(userId) {
+            try {
+                const user = allUsers.find(u => u.id === userId);
+                if (user) {
+                    document.getElementById('modalTitle').textContent = '编辑用户';
+                    document.getElementById('editId').value = user.id;
+                    document.getElementById('username').value = user.username;
+                    document.getElementById('password').value = '';
+                    document.getElementById('role').value = user.role;
+                    document.getElementById('modalOverlay').classList.add('show');
+                }
+            } catch (error) {
+                console.error('获取用户信息失败:', error);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('show');
+        }
+
+        async function saveUser() {
+            const id = document.getElementById('editId').value;
+            const data = {
+                username: document.getElementById('username').value,
+                role: document.getElementById('role').value
+            };
+            const password = document.getElementById('password').value;
+            if (password) {
+                data.password = password;
+            }
+
+            if (!data.username) {
+                alert('请输入用户名');
+                return;
+            }
+
+            try {
+                let response;
+                if (id) {
+                    response = await apiRequest(`/api/update_user/${id}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    if (!data.password) {
+                        alert('请输入密码');
+                        return;
+                    }
+                    response = await apiRequest('/api/add_user', {
+                        method: 'POST',
+                        body: JSON.stringify(data)
+                    });
+                }
+                alert(response.message);
+                if (response.success) {
+                    closeModal();
+                    loadUsers();
+                }
+            } catch (error) {
+                console.error('保存用户失败:', error);
+                alert('保存用户失败');
+            }
+        }
+
+        async function deleteUser(userId) {
+            if (!confirm('确定要删除该用户吗？')) return;
+            try {
+                const response = await apiRequest(`/api/delete_user/${userId}`, { method: 'DELETE' });
+                alert(response.message);
+                if (response.success) {
+                    loadUsers();
+                }
+            } catch (error) {
+                console.error('删除用户失败:', error);
+                alert('删除用户失败');
+            }
+        }
+
+        loadUsers();
+    </script>
+</body>
+</html>

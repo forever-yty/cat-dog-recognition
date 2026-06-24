@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公告管理 - PetWise 管理后台</title>
+    <link rel="stylesheet" href="assets/css/admin.css">
+    <style>
+        .form-textarea { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; min-height: 100px; }
+        .notice-list { max-height: 400px; overflow-y: auto; }
+        .notice-item { padding: 15px; border-bottom: 1px solid #e2e8f0; transition: background 0.2s; }
+        .notice-item:hover { background: #f7fafc; }
+        .notice-title { font-weight: 600; color: #2d3748; }
+        .notice-content { font-size: 13px; color: #718096; margin: 5px 0; }
+        .notice-time { font-size: 12px; color: #a0aec0; }
+        .btn-group { display: flex; gap: 8px; }
+        .btn-back { background: #a0aec0; color: white; padding: 8px 16px; font-size: 13px; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-back:hover { background: #718096; }
+        .btn-edit { background: #63b3ed; color: white; padding: 5px 12px; font-size: 12px; }
+        .btn-edit:hover { background: #4299e1; }
+        .empty-state { text-align: center; padding: 40px; color: #a0aec0; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">PetWise 管理后台</div>
+        <div class="sidebar-menu">
+            <div class="menu-item" onclick="navigateTo('dashboard')"><span class="menu-icon">📊</span><span>仪表盘</span></div>
+            <div class="menu-item" onclick="navigateTo('users')"><span class="menu-icon">👥</span><span>用户管理</span></div>
+            <div class="menu-item" onclick="navigateTo('pets')"><span class="menu-icon">🐾</span><span>大模型管理</span></div>
+            <div class="menu-item" onclick="navigateTo('knowledge')"><span class="menu-icon">📚</span><span>知识库</span></div>
+            <div class="menu-item" onclick="navigateTo('sample')"><span class="menu-icon">🧪</span><span>难样本</span></div>
+            <div class="menu-item" onclick="navigateTo('statistics')"><span class="menu-icon">📈</span><span>数据统计</span></div>
+            <div class="menu-item" onclick="navigateTo('logs')"><span class="menu-icon">📋</span><span>系统日志</span></div>
+            <div class="menu-item" onclick="navigateTo('config')"><span class="menu-icon">⚙️</span><span>系统配置</span></div>
+            <div class="menu-item" onclick="navigateTo('network')"><span class="menu-icon">🌐</span><span>网络配置</span></div>
+            <div class="menu-item" onclick="navigateTo('sensitive')"><span class="menu-icon">🔒</span><span>敏感词</span></div>
+            <div class="menu-item" onclick="navigateTo('feedback')"><span class="menu-icon">💬</span><span>用户反馈</span></div>
+            <div class="menu-item active" onclick="navigateTo('notice')"><span class="menu-icon">📢</span><span>公告管理</span></div>
+        </div>
+    </div>
+    <div class="main-content">
+        <div class="top-bar">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <button class="btn-back" onclick="goBack()">← 返回</button>
+                <div class="page-title">公告管理</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <span style="color: #4a5568; font-size: 14px;">admin</span>
+                <button class="logout-btn" onclick="logout()">退出</button>
+            </div>
+        </div>
+        <div class="content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">发布新公告</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">公告标题</label>
+                    <input type="text" id="newNoticeTitle" class="form-input" placeholder="输入公告标题">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">公告内容</label>
+                    <textarea id="newNoticeContent" class="form-textarea" placeholder="输入公告内容"></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="addNotice()">发布公告</button>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">公告列表</div>
+                </div>
+                <div class="notice-list" id="noticeList">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <div class="modal-title">编辑公告</div>
+            <input type="hidden" id="editNoticeId">
+            <div class="form-group">
+                <label class="form-label">公告标题</label>
+                <input type="text" id="editNoticeTitle" class="form-input">
+            </div>
+            <div class="form-group">
+                <label class="form-label">公告内容</label>
+                <textarea id="editNoticeContent" class="form-textarea"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeEditModal()">取消</button>
+                <button class="btn btn-primary" onclick="updateNotice()">保存修改</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/admin.js"></script>
+    <script>
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+
+        async function loadNotices() {
+            try {
+                const result = await apiRequest('/api/get_notices');
+                if (result.success) {
+                    displayNotices(result.list);
+                } else {
+                    displayNotices([]);
+                }
+            } catch (error) {
+                console.error('加载公告失败:', error);
+                displayNotices([]);
+            }
+        }
+
+        function displayNotices(notices) {
+            const noticeList = document.getElementById('noticeList');
+            if (notices.length === 0) {
+                noticeList.innerHTML = '<div class="empty-state">暂无公告</div>';
+                return;
+            }
+            noticeList.innerHTML = notices.map(item => `
+                <div class="notice-item">
+                    <div class="notice-title">${escapeHtml(item.title)}</div>
+                    <div class="notice-content">${escapeHtml(item.content)}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span class="notice-time">${item.create_time}</span>
+                        <div class="btn-group">
+                            <button class="btn btn-edit" onclick="openEditModal(${item.id}, '${escapeHtml(item.title)}', '${escapeHtml(item.content)}')">编辑</button>
+                            <button class="btn btn-delete" onclick="deleteNotice(${item.id})">删除</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function addNotice() {
+            const title = document.getElementById('newNoticeTitle').value.trim();
+            const content = document.getElementById('newNoticeContent').value.trim();
+            
+            if (!title) {
+                alert('请输入公告标题');
+                return;
+            }
+            if (!content) {
+                alert('请输入公告内容');
+                return;
+            }
+
+            try {
+                const result = await apiRequest('/api/add_notice', {
+                    method: 'POST',
+                    body: JSON.stringify({ title, content })
+                });
+                alert(result.msg || (result.success ? '发布成功' : '发布失败'));
+                if (result.success) {
+                    document.getElementById('newNoticeTitle').value = '';
+                    document.getElementById('newNoticeContent').value = '';
+                    loadNotices();
+                }
+            } catch (error) {
+                console.error('发布公告失败:', error);
+                alert('发布失败');
+            }
+        }
+
+        function openEditModal(id, title, content) {
+            document.getElementById('editNoticeId').value = id;
+            document.getElementById('editNoticeTitle').value = title;
+            document.getElementById('editNoticeContent').value = content;
+            document.getElementById('editModal').classList.add('show');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('show');
+        }
+
+        async function updateNotice() {
+            const id = document.getElementById('editNoticeId').value;
+            const title = document.getElementById('editNoticeTitle').value.trim();
+            const content = document.getElementById('editNoticeContent').value.trim();
+            
+            if (!title) {
+                alert('请输入公告标题');
+                return;
+            }
+            if (!content) {
+                alert('请输入公告内容');
+                return;
+            }
+
+            try {
+                const result = await apiRequest('/api/update_notice', {
+                    method: 'PUT',
+                    body: JSON.stringify({ id, title, content })
+                });
+                alert(result.msg || (result.success ? '更新成功' : '更新失败'));
+                if (result.success) {
+                    closeEditModal();
+                    loadNotices();
+                }
+            } catch (error) {
+                console.error('更新公告失败:', error);
+                alert('更新失败');
+            }
+        }
+
+        async function deleteNotice(id) {
+            if (!confirm('确定要删除该公告吗？')) return;
+            
+            try {
+                const result = await apiRequest(`/api/delete_notice?id=${id}`, {
+                    method: 'DELETE'
+                });
+                alert(result.success ? '删除成功' : '删除失败');
+                if (result.success) {
+                    loadNotices();
+                }
+            } catch (error) {
+                console.error('删除公告失败:', error);
+                alert('删除失败');
+            }
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, '&amp;')
+                      .replace(/</g, '&lt;')
+                      .replace(/>/g, '&gt;')
+                      .replace(/"/g, '&quot;')
+                      .replace(/'/g, '&#039;');
+        }
+
+        window.onload = loadNotices;
+    </script>
+</body>
+</html>

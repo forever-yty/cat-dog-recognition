@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户反馈 - PetWise 管理后台</title>
+    <link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">PetWise 管理后台</div>
+        <div class="sidebar-menu">
+            <div class="menu-item" onclick="navigateTo('dashboard')"><span class="menu-icon">📊</span><span>仪表盘</span></div>
+            <div class="menu-item" onclick="navigateTo('users')"><span class="menu-icon">👥</span><span>用户管理</span></div>
+            <div class="menu-item" onclick="navigateTo('pets')"><span class="menu-icon">🐾</span><span>大模型管理</span></div>
+            <div class="menu-item" onclick="navigateTo('knowledge')"><span class="menu-icon">📚</span><span>知识库</span></div>
+            <div class="menu-item" onclick="navigateTo('sample')"><span class="menu-icon">🧪</span><span>难样本</span></div>
+            <div class="menu-item" onclick="navigateTo('statistics')"><span class="menu-icon">📈</span><span>数据统计</span></div>
+            <div class="menu-item" onclick="navigateTo('logs')"><span class="menu-icon">📋</span><span>系统日志</span></div>
+            <div class="menu-item" onclick="navigateTo('config')"><span class="menu-icon">⚙️</span><span>系统配置</span></div>
+            <div class="menu-item" onclick="navigateTo('network')"><span class="menu-icon">🌐</span><span>网络配置</span></div>
+            <div class="menu-item" onclick="navigateTo('sensitive')"><span class="menu-icon">🔒</span><span>敏感词</span></div>
+            <div class="menu-item active" onclick="navigateTo('feedback')"><span class="menu-icon">💬</span><span>用户反馈</span></div>
+            <div class="menu-item" onclick="navigateTo('notice')"><span class="menu-icon">📢</span><span>公告管理</span></div>
+        </div>
+    </div>
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="page-title">用户反馈</div>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <span style="color: #4a5568; font-size: 14px;">admin</span>
+                <button class="logout-btn" onclick="logout()">退出</button>
+            </div>
+        </div>
+        <div class="content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">用户反馈列表</div>
+                    <button class="btn btn-view" onclick="loadFeedback()" style="padding: 8px 16px; font-size: 14px;">刷新</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr><th>反馈ID</th><th>用户</th><th>类型</th><th>反馈内容</th><th>状态</th><th>提交时间</th><th>操作</th></tr>
+                    </thead>
+                    <tbody id="feedbackTable">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-title" id="modalTitle">查看反馈</div>
+            <div class="modal-content" id="modalContent">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeModal()">关闭</button>
+                <button class="btn btn-process" id="processBtn" style="display: none;">标记为已处理</button>
+            </div>
+        </div>
+    </div>
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/admin.js"></script>
+    <script>
+        let currentFeedback = null;
+
+        async function loadFeedback() {
+            try {
+                const response = await fetch(`${API_BASE}/api/get_all_feedback`);
+                const result = await response.json();
+                if (result.success) {
+                    displayFeedback(result.list);
+                } else {
+                    displayFeedback(getMockFeedback());
+                }
+            } catch (error) {
+                console.error('加载反馈失败:', error);
+                displayFeedback(getMockFeedback());
+            }
+        }
+
+        function getMockFeedback() {
+            return [
+                { fid: '#FB001', uid: '用户A', content: '识别结果不准确，上传的猫咪照片被识别成了狗狗。', type: 'bug', status: '待处理', time: '01/15 14:30' },
+                { fid: '#FB002', uid: '用户B', content: '希望增加更多品种，很多稀有品种都识别不了。', type: 'suggestion', status: '待处理', time: '01/15 10:20' },
+                { fid: '#FB003', uid: '用户C', content: '智能助手响应慢，需要优化性能。', type: 'other', status: '已处理', time: '01/14 16:45' },
+            ];
+        }
+
+        function displayFeedback(feedbackList) {
+            const table = document.getElementById('feedbackTable');
+            table.innerHTML = '';
+
+            if (feedbackList.length === 0) {
+                table.innerHTML = '<tr><td colspan="7" class="no-data">暂无用户反馈</td></tr>';
+                return;
+            }
+
+            feedbackList.forEach(item => {
+                const row = document.createElement('tr');
+                const statusClass = item.status === '待处理' ? 'status-pending' : 'status-resolved';
+                const statusText = item.status;
+                const typeText = getTypeText(item.type);
+                
+                row.innerHTML = `
+                    <td>${item.fid || '#FB000'}</td>
+                    <td>${item.uid}</td>
+                    <td><span class="type-badge">${typeText}</span></td>
+                    <td title="${item.content}">${item.content.substring(0, 30)}${item.content.length > 30 ? '...' : ''}</td>
+                    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    <td>${item.time || ''}</td>
+                    <td>
+                        <button class="btn btn-view" onclick="showFeedback('${item.fid}')">查看</button>
+                        ${item.status === '待处理' ? `<button class="btn btn-process" onclick="processFeedback('${item.fid}')">处理</button>` : ''}
+                        <button class="btn btn-delete" onclick="deleteFeedback('${item.fid}')">删除</button>
+                    </td>
+                `;
+                table.appendChild(row);
+            });
+        }
+
+        function getTypeText(type) {
+            const types = {
+                'suggestion': '功能建议',
+                'bug': '问题反馈',
+                'other': '其他'
+            };
+            return types[type] || type;
+        }
+
+        async function showFeedback(fid) {
+            try {
+                const response = await fetch(`${API_BASE}/api/get_all_feedback`);
+                const result = await response.json();
+                if (result.success) {
+                    const feedback = result.list.find(f => f.fid === fid);
+                    if (feedback) {
+                        currentFeedback = feedback;
+                        const statusClass = feedback.status === '待处理' ? 'status-pending' : 'status-resolved';
+                        document.getElementById('modalContent').innerHTML = `
+                            <div class="modal-info"><span class="modal-label">用户：</span>${feedback.uid}</div>
+                            <div class="modal-info"><span class="modal-label">类型：</span>${getTypeText(feedback.type)}</div>
+                            <div class="modal-info"><span class="modal-label">状态：</span><span class="status-badge ${statusClass}">${feedback.status}</span></div>
+                            <div class="modal-info"><span class="modal-label">时间：</span>${feedback.time || ''}</div>
+                            <div style="margin-top: 15px;">
+                                <div style="font-weight: 500; color: #4a5568; margin-bottom: 8px;">反馈内容：</div>
+                                <div style="background: #f7fafc; padding: 12px; border-radius: 8px;">${feedback.content}</div>
+                            </div>
+                        `;
+                        document.getElementById('processBtn').style.display = feedback.status === '待处理' ? 'inline-block' : 'none';
+                        document.getElementById('modalOverlay').classList.add('show');
+                    }
+                }
+            } catch (error) {
+                console.error('获取反馈详情失败:', error);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('show');
+            currentFeedback = null;
+        }
+
+        async function processFeedback(fid) {
+            if (!confirm('确定要标记为已处理吗？')) return;
+            try {
+                const response = await fetch(`${API_BASE}/api/handle_feedback?fid=${encodeURIComponent(fid)}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: '已处理' })
+                });
+                const result = await response.json();
+                alert(result.msg || '处理成功');
+                if (result.success) {
+                    closeModal();
+                    loadFeedback();
+                }
+            } catch (error) {
+                console.error('处理反馈失败:', error);
+                alert('处理失败');
+            }
+        }
+
+        async function deleteFeedback(fid) {
+            if (!confirm('确定要删除该反馈吗？')) return;
+            try {
+                const response = await fetch(`${API_BASE}/api/del_feedback?fid=${encodeURIComponent(fid)}`, { method: 'DELETE' });
+                const result = await response.json();
+                alert(result.success ? '删除成功' : '删除失败');
+                if (result.success) {
+                    loadFeedback();
+                }
+            } catch (error) {
+                console.error('删除反馈失败:', error);
+                alert('删除失败');
+            }
+        }
+
+        loadFeedback();
+    </script>
+</body>
+</html>

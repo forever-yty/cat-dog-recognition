@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大模型管理 - PetWise 管理后台</title>
+    <link rel="stylesheet" href="assets/css/admin.css">
+    <style>
+        .model-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .model-item { padding: 20px; background: #f7fafc; border-radius: 8px; text-align: center; }
+        .model-name { font-weight: 600; color: #2d3748; margin-bottom: 8px; }
+        .model-status { padding: 4px 12px; border-radius: 20px; font-size: 12px; display: inline-block; margin-top: 10px; }
+        .status-active { background: rgba(34,197,94,0.15); color: #22c55e; }
+        .status-inactive { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .btn-secondary { background: #e2e8f0; color: #4a5568; padding: 8px 16px; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">PetWise 管理后台</div>
+        <div class="sidebar-menu">
+            <div class="menu-item" onclick="navigateTo('dashboard')"><span class="menu-icon">📊</span><span>仪表盘</span></div>
+            <div class="menu-item" onclick="navigateTo('users')"><span class="menu-icon">👥</span><span>用户管理</span></div>
+            <div class="menu-item active" onclick="navigateTo('pets')"><span class="menu-icon">🐾</span><span>大模型管理</span></div>
+            <div class="menu-item" onclick="navigateTo('knowledge')"><span class="menu-icon">📚</span><span>知识库</span></div>
+            <div class="menu-item" onclick="navigateTo('sample')"><span class="menu-icon">🧪</span><span>难样本</span></div>
+            <div class="menu-item" onclick="navigateTo('statistics')"><span class="menu-icon">📈</span><span>数据统计</span></div>
+            <div class="menu-item" onclick="navigateTo('logs')"><span class="menu-icon">📋</span><span>系统日志</span></div>
+            <div class="menu-item" onclick="navigateTo('config')"><span class="menu-icon">⚙️</span><span>系统配置</span></div>
+            <div class="menu-item" onclick="navigateTo('network')"><span class="menu-icon">🌐</span><span>网络配置</span></div>
+            <div class="menu-item" onclick="navigateTo('sensitive')"><span class="menu-icon">🔒</span><span>敏感词</span></div>
+            <div class="menu-item" onclick="navigateTo('feedback')"><span class="menu-icon">💬</span><span>用户反馈</span></div>
+            <div class="menu-item" onclick="navigateTo('notice')"><span class="menu-icon">📢</span><span>公告管理</span></div>
+        </div>
+    </div>
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="page-title">大模型管理</div>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <span style="color: #4a5568; font-size: 14px;">admin</span>
+                <button class="logout-btn" onclick="logout()">退出</button>
+            </div>
+        </div>
+        <div class="content">
+            <div class="card">
+                <div class="card-title">模型列表</div>
+                <div class="model-info">
+                    <div class="model-item"><div>🐕</div><div class="model-name">YOLOv8 宠物识别</div><div class="model-status status-active">运行中</div></div>
+                    <div class="model-item"><div>🦮</div><div class="model-name">ResNet101 分类</div><div class="model-status status-active">运行中</div></div>
+                    <div class="model-item"><div>🤖</div><div class="model-name">DashScope 问答</div><div class="model-status status-active">运行中</div></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">模型操作</div>
+                <div style="display: flex; gap: 15px;">
+                    <button class="btn btn-primary">重启模型</button>
+                    <button class="btn btn-secondary">更新模型</button>
+                    <button class="btn btn-secondary">查看日志</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="assets/js/admin.js"></script>
+</body>
+</html>

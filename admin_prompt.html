@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt模板 - PetWise 管理后台</title>
+    <link rel="stylesheet" href="assets/css/admin.css">
+    <style>
+        .prompt-list { max-height: 400px; overflow-y: auto; }
+        .prompt-item { padding: 15px; border-bottom: 1px solid #e2e8f0; cursor: pointer; }
+        .prompt-item:hover { background: #f7fafc; }
+        .prompt-title { font-weight: 600; color: #2d3748; }
+        .prompt-content { font-size: 12px; color: #718096; margin-top: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">PetWise 管理后台</div>
+        <div class="sidebar-menu">
+            <div class="menu-item" onclick="navigateTo('dashboard')"><span class="menu-icon">📊</span><span>仪表盘</span></div>
+            <div class="menu-item" onclick="navigateTo('users')"><span class="menu-icon">👥</span><span>用户管理</span></div>
+            <div class="menu-item" onclick="navigateTo('pets')"><span class="menu-icon">🐾</span><span>大模型管理</span></div>
+            <div class="menu-item" onclick="navigateTo('knowledge')"><span class="menu-icon">📚</span><span>知识库</span></div>
+            <div class="menu-item" onclick="navigateTo('sample')"><span class="menu-icon">🧪</span><span>难样本</span></div>
+            <div class="menu-item" onclick="navigateTo('statistics')"><span class="menu-icon">📈</span><span>数据统计</span></div>
+            <div class="menu-item" onclick="navigateTo('logs')"><span class="menu-icon">📋</span><span>系统日志</span></div>
+            <div class="menu-item" onclick="navigateTo('config')"><span class="menu-icon">⚙️</span><span>系统配置</span></div>
+            <div class="menu-item" onclick="navigateTo('network')"><span class="menu-icon">🌐</span><span>网络配置</span></div>
+            <div class="menu-item" onclick="navigateTo('sensitive')"><span class="menu-icon">🔒</span><span>敏感词</span></div>
+            <div class="menu-item active" onclick="navigateTo('prompt')"><span class="menu-icon">✏️</span><span>Prompt模板</span></div>
+            <div class="menu-item" onclick="navigateTo('feedback')"><span class="menu-icon">💬</span><span>用户反馈</span></div>
+            <div class="menu-item" onclick="navigateTo('notice')"><span class="menu-icon">📢</span><span>公告管理</span></div>
+        </div>
+    </div>
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="page-title">Prompt模板管理</div>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <span style="color: #4a5568; font-size: 14px;">admin</span>
+                <button class="logout-btn" onclick="logout()">退出</button>
+            </div>
+        </div>
+        <div class="content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Prompt模板列表</div>
+                    <button class="btn btn-primary">添加模板</button>
+                </div>
+                <div class="prompt-list">
+                    <div class="prompt-item"><div class="prompt-title">宠物识别提示词</div><div class="prompt-content">请识别图片中的宠物品种，给出详细的品种信息...</div></div>
+                    <div class="prompt-item"><div class="prompt-title">健康咨询提示词</div><div class="prompt-content">根据用户描述的宠物症状，提供专业的健康建议...</div></div>
+                    <div class="prompt-item"><div class="prompt-title">饲养指南提示词</div><div class="prompt-content">根据宠物品种，提供详细的饲养指南...</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="assets/js/admin.js"></script>
+</body>
+</html>

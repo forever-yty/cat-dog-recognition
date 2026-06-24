@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>猫狗品种智能识别系统 - 图像识别</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            min-height: 100vh;
+        }
+        .header {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .header-title {
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .user-info {
+            color: white;
+            font-size: 14px;
+        }
+        .logout-btn {
+            padding: 8px 20px;
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+        .main-content {
+            padding: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .page-title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .page-title h1 {
+            color: white;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .page-title p {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+        .upload-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 50px;
+            text-align: center;
+            border: 2px dashed rgba(59, 130, 246, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .upload-section:hover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.05);
+        }
+        .upload-section.dragover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+        .upload-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            margin: 0 auto 20px;
+        }
+        .upload-section h3 {
+            color: white;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .upload-section p {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .upload-btn {
+            padding: 12px 30px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        .upload-btn:hover {
+            background: #1d4ed8;
+        }
+        #fileInput {
+            display: none;
+        }
+        .preview-section {
+            display: none;
+            margin-top: 40px;
+        }
+        .preview-section.active {
+            display: block;
+        }
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .preview-header h3 {
+            color: white;
+            font-size: 18px;
+        }
+        .clear-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .preview-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+        }
+        .preview-image {
+            max-width: 400px;
+            max-height: 400px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .predict-btn {
+            padding: 14px 40px;
+            background: #22c55e;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        .predict-btn:hover {
+            background: #16a34a;
+        }
+        .predict-btn:disabled {
+            background: #64748b;
+            cursor: not-allowed;
+        }
+        .loading {
+            display: none;
+            color: #3b82f6;
+            font-size: 16px;
+        }
+        .loading.active {
+            display: block;
+        }
+        .result-section {
+            display: none;
+            margin-top: 40px;
+        }
+        .result-section.active {
+            display: block;
+        }
+        .result-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 30px;
+        }
+        .result-header {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 20px;
+        }
+        .back-btn {
+            padding: 8px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .original-image-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .original-image {
+            max-width: 500px;
+            max-height: 400px;
+            width: auto;
+            height: auto;
+            border-radius: 12px;
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .image-label {
+            margin-top: 10px;
+            color: #94a3b8;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .result-info {
+            margin-top: 20px;
+        }
+        .result-info h3 {
+            color: white;
+            font-size: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .breed-list {
+            list-style: none;
+        }
+        .breed-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .breed-link {
+            color: #3b82f6;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .breed-link:hover {
+            color: #60a5fa;
+            text-decoration: underline;
+        }
+        .breed-name {
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .breed-meta {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .breed-confidence {
+            color: #3b82f6;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .breed-status {
+            padding: 4px 12px;
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .breed-score {
+            color: #22c55e;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .result-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .action-btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .action-btn.download {
+            background: #3b82f6;
+            color: white;
+        }
+        .action-btn.download:hover {
+            background: #1d4ed8;
+        }
+        .action-btn.new {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        .action-btn.new:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .error-msg {
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <div class="logo-icon" onclick="goHome()">DC</div>
+            <div class="header-title">猫狗品种智能识别系统</div>
+        </div>
+        <div class="header-right">
+            <div class="user-info" id="userInfo">用户</div>
+            <button class="logout-btn" onclick="logout()">退出登录</button>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="page-title">
+            <h1>🖼️ 单图识别</h1>
+            <p>上传一张宠物图片，系统将自动识别品种</p>
+        </div>
+        
+        <button class="back-btn" onclick="goHome()">← 返回</button>
+        
+        <div class="upload-section" id="uploadSection" onclick="triggerFileInput()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+            <div class="upload-icon">📷</div>
+            <h3>点击或拖拽上传图片</h3>
+            <p>支持 JPG、PNG、JPEG 格式，最大 10MB</p>
+            <button class="upload-btn" onclick="event.stopPropagation(); triggerFileInput()">选择图片</button>
+            <input type="file" id="fileInput" accept="image/*" onchange="handleFileSelect(event)">
+        </div>
+        
+        <div class="preview-section" id="previewSection">
+            <div class="preview-header">
+                <h3>预览图片</h3>
+                <button class="clear-btn" onclick="clearPreview()">重新选择</button>
+            </div>
+            <div class="preview-container">
+                <img id="previewImage" class="preview-image" src="" alt="预览">
+                <div>
+                    <button class="predict-btn" id="predictBtn" onclick="predictImage()">开始识别</button>
+                    <div class="loading" id="loading">识别中...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="result-section" id="resultSection">
+            <div class="result-card">
+                <div class="original-image-container">
+                    <img id="originalImage" class="original-image" src="" alt="原图">
+                    <div class="image-label">原图</div>
+                </div>
+                <div class="result-info">
+                    <h3>识别结果</h3>
+                    <ul class="breed-list" id="breedList"></ul>
+                    <div class="result-actions">
+                        <button class="action-btn download" onclick="downloadResult()">下载结果</button>
+                        <button class="action-btn new" onclick="clearAll()">识别新图片</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = 'http://127.0.0.1:5000';
+        let selectedFile = null;
+        let resultData = null;
+        
+        function checkLogin() {
+            const user = localStorage.getItem('user');
+            if (!user) {
+                window.location.href = 'login.html';
+                return null;
+            }
+            return JSON.parse(user);
+        }
+        
+        const user = checkLogin();
+        if (user) {
+            document.getElementById('userInfo').textContent = user.username;
+        }
+        
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+        
+        function goHome() {
+            window.location.href = 'index.html';
+        }
+        
+        function triggerFileInput() {
+            document.getElementById('fileInput').click();
+        }
+        
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                processFile(file);
+            }
+        }
+        
+        function handleDragOver(e) {
+            e.preventDefault();
+            document.getElementById('uploadSection').classList.add('dragover');
+        }
+        
+        function handleDragLeave(e) {
+            e.preventDefault();
+            document.getElementById('uploadSection').classList.remove('dragover');
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            document.getElementById('uploadSection').classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type.startsWith('image/')) {
+                    processFile(file);
+                }
+            }
+        }
+        
+        function processFile(file) {
+            selectedFile = file;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('previewImage').src = e.target.result;
+                document.getElementById('uploadSection').style.display = 'none';
+                document.getElementById('previewSection').classList.add('active');
+                document.getElementById('resultSection').classList.remove('active');
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function clearPreview() {
+            selectedFile = null;
+            document.getElementById('previewImage').src = '';
+            document.getElementById('previewSection').classList.remove('active');
+            document.getElementById('resultSection').classList.remove('active');
+            document.getElementById('uploadSection').style.display = 'block';
+        }
+        
+        async function predictImage() {
+            if (!selectedFile) return;
+            
+            const predictBtn = document.getElementById('predictBtn');
+            const loading = document.getElementById('loading');
+            
+            predictBtn.disabled = true;
+            loading.classList.add('active');
+            
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/img_predict`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultData = result;
+                    displayResult(result);
+                } else {
+                    alert('识别失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('识别失败: ' + error.message);
+            } finally {
+                predictBtn.disabled = false;
+                loading.classList.remove('active');
+            }
+        }
+        
+        function displayResult(result) {
+            document.getElementById('originalImage').src = `${API_BASE}${result.original_url}`;
+            
+            const breedList = document.getElementById('breedList');
+            breedList.innerHTML = '';
+            
+            result.breeds.forEach((breed, index) => {
+                const li = document.createElement('li');
+                li.className = 'breed-item';
+                
+                if (typeof breed === 'object' && breed.name !== undefined) {
+                    const confidence = (breed.score * 100).toFixed(2);
+                    const breedName = breed.name.replace(/\([^)]*\)/g, '').trim();
+                    li.innerHTML = `
+                        <span class="breed-name"><a href="https://www.baidu.com/s?wd=${encodeURIComponent(breedName + ' 品种介绍')}" target="_blank" class="breed-link">${index + 1}. ${breed.name}</a></span>
+                        <div class="breed-meta">
+                            <span class="breed-confidence">置信度: ${confidence}%</span>
+                            <span class="breed-status">完整预测</span>
+                        </div>
+                    `;
+                } else {
+                    const breedName = String(breed).replace(/\([^)]*\)/g, '').trim();
+                    li.innerHTML = `
+                        <span class="breed-name"><a href="https://www.baidu.com/s?wd=${encodeURIComponent(breedName + ' 品种介绍')}" target="_blank" class="breed-link">${index + 1}. ${breed}</a></span>
+                        <div class="breed-meta">
+                            <span class="breed-confidence">置信度: 识别中</span>
+                            <span class="breed-status">完整预测</span>
+                        </div>
+                    `;
+                }
+                breedList.appendChild(li);
+            });
+            
+            document.getElementById('previewSection').classList.remove('active');
+            document.getElementById('resultSection').classList.add('active');
+        }
+        
+        function downloadResult() {
+            if (resultData && resultData.result_url) {
+                const link = document.createElement('a');
+                link.href = `${API_BASE}${resultData.result_url}`;
+                link.download = '识别结果.jpg';
+                link.click();
+            }
+        }
+        
+        function clearAll() {
+            clearPreview();
+        }
+    </script>
+</body>
+</html>

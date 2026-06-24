@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知识库 - PetWise 管理后台</title>
+    <link rel="stylesheet" href="assets/css/admin.css">
+    <style>
+        .category-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+        .category-dog { background: rgba(34,197,94,0.15); color: #22c55e; }
+        .category-cat { background: rgba(99,179,237,0.15); color: #63b3ed; }
+        .search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+        .search-input { flex: 1; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; }
+        .category-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; background: #e2e8f0; color: #4a5568; }
+        .tab.active { background: #63b3ed; color: white; }
+        .form-textarea { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; min-height: 80px; }
+        .btn-edit { background: #63b3ed; color: white; padding: 5px 12px; font-size: 12px; }
+        .btn-link { background: #e2e8f0; color: #4a5568; padding: 5px 12px; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">PetWise 管理后台</div>
+        <div class="sidebar-menu">
+            <div class="menu-item" onclick="navigateTo('dashboard')"><span class="menu-icon">📊</span><span>仪表盘</span></div>
+            <div class="menu-item" onclick="navigateTo('users')"><span class="menu-icon">👥</span><span>用户管理</span></div>
+            <div class="menu-item" onclick="navigateTo('pets')"><span class="menu-icon">🐾</span><span>大模型管理</span></div>
+            <div class="menu-item active" onclick="navigateTo('knowledge')"><span class="menu-icon">📚</span><span>知识库</span></div>
+            <div class="menu-item" onclick="navigateTo('sample')"><span class="menu-icon">🧪</span><span>难样本</span></div>
+            <div class="menu-item" onclick="navigateTo('statistics')"><span class="menu-icon">📈</span><span>数据统计</span></div>
+            <div class="menu-item" onclick="navigateTo('logs')"><span class="menu-icon">📋</span><span>系统日志</span></div>
+            <div class="menu-item" onclick="navigateTo('config')"><span class="menu-icon">⚙️</span><span>系统配置</span></div>
+            <div class="menu-item" onclick="navigateTo('network')"><span class="menu-icon">🌐</span><span>网络配置</span></div>
+            <div class="menu-item" onclick="navigateTo('sensitive')"><span class="menu-icon">🔒</span><span>敏感词</span></div>
+            <div class="menu-item" onclick="navigateTo('feedback')"><span class="menu-icon">💬</span><span>用户反馈</span></div>
+            <div class="menu-item" onclick="navigateTo('notice')"><span class="menu-icon">📢</span><span>公告管理</span></div>
+        </div>
+    </div>
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="page-title">知识库管理</div>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <span style="color: #4a5568; font-size: 14px;">admin</span>
+                <button class="logout-btn" onclick="logout()">退出</button>
+            </div>
+        </div>
+        <div class="content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">品种知识库</div>
+                    <button class="btn btn-primary" onclick="showAddModal()">添加品种</button>
+                </div>
+                <div class="category-tabs">
+                    <button class="tab active" onclick="filterByCategory('all')">全部</button>
+                    <button class="tab" onclick="filterByCategory('dog')">🐕 犬类</button>
+                    <button class="tab" onclick="filterByCategory('cat')">🐱 猫类</button>
+                </div>
+                <div class="search-bar">
+                    <input type="text" class="search-input" id="searchInput" placeholder="搜索品种名称..." onkeyup="searchKnowledge()">
+                    <button class="btn btn-primary" onclick="loadKnowledge()">刷新</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr><th>品种名称</th><th>类别</th><th>描述</th><th>百度链接</th><th>操作</th></tr>
+                    </thead>
+                    <tbody id="knowledgeTable">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 添加/编辑弹窗 -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-title" id="modalTitle">添加品种</div>
+            <input type="hidden" id="editId">
+            <div class="form-group">
+                <label class="form-label">品种名称</label>
+                <input type="text" class="form-input" id="breedName" placeholder="输入品种名称">
+            </div>
+            <div class="form-group">
+                <label class="form-label">类别</label>
+                <select class="form-select" id="category">
+                    <option value="dog">🐕 犬类</option>
+                    <option value="cat">🐱 猫类</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">品种描述</label>
+                <textarea class="form-textarea" id="description" placeholder="输入品种描述"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">百度百科链接</label>
+                <input type="text" class="form-input" id="baiduUrl" placeholder="输入百度百科链接">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveKnowledge()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/admin.js"></script>
+    <script>
+        let currentCategory = 'all';
+        let currentSearch = '';
+
+        async function loadKnowledge() {
+            try {
+                const result = await apiRequest('/api/knowledge');
+                if (result.success) {
+                    displayKnowledge(result.data);
+                }
+            } catch (error) {
+                console.error('加载知识库失败:', error);
+            }
+        }
+
+        function displayKnowledge(data) {
+            const table = document.getElementById('knowledgeTable');
+            table.innerHTML = '';
+            
+            const filtered = data.filter(item => {
+                const matchCategory = currentCategory === 'all' || item.category === currentCategory;
+                const matchSearch = !currentSearch || item.breed_name.includes(currentSearch);
+                return matchCategory && matchSearch;
+            });
+
+            filtered.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.breed_name}</td>
+                    <td><span class="category-badge ${item.category === 'dog' ? 'category-dog' : 'category-cat'}">
+                        ${item.category === 'dog' ? '🐕 犬类' : '🐱 猫类'}
+                    </span></td>
+                    <td title="${item.description}">${item.description ? item.description.substring(0, 30) + '...' : '-'}</td>
+                    <td>
+                        ${item.baidu_url ? `<a href="${item.baidu_url}" target="_blank" class="btn btn-link">查看详情</a>` : '-'}
+                    </td>
+                    <td>
+                        <button class="btn btn-edit" onclick="showEditModal(${item.id})">编辑</button>
+                        <button class="btn btn-delete" onclick="deleteKnowledge(${item.id})">删除</button>
+                    </td>
+                `;
+                table.appendChild(row);
+            });
+        }
+
+        function filterByCategory(category) {
+            currentCategory = category;
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            loadKnowledge();
+        }
+
+        function searchKnowledge() {
+            currentSearch = document.getElementById('searchInput').value;
+            loadKnowledge();
+        }
+
+        function showAddModal() {
+            document.getElementById('modalTitle').textContent = '添加品种';
+            document.getElementById('editId').value = '';
+            document.getElementById('breedName').value = '';
+            document.getElementById('category').value = 'dog';
+            document.getElementById('description').value = '';
+            document.getElementById('baiduUrl').value = '';
+            document.getElementById('modalOverlay').classList.add('show');
+        }
+
+        async function showEditModal(id) {
+            try {
+                const result = await apiRequest('/api/knowledge');
+                if (result.success) {
+                    const item = result.data.find(k => k.id === id);
+                    if (item) {
+                        document.getElementById('modalTitle').textContent = '编辑品种';
+                        document.getElementById('editId').value = item.id;
+                        document.getElementById('breedName').value = item.breed_name;
+                        document.getElementById('category').value = item.category;
+                        document.getElementById('description').value = item.description;
+                        document.getElementById('baiduUrl').value = item.baidu_url;
+                        document.getElementById('modalOverlay').classList.add('show');
+                    }
+                }
+            } catch (error) {
+                console.error('获取品种信息失败:', error);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('show');
+        }
+
+        async function saveKnowledge() {
+            const id = document.getElementById('editId').value;
+            const data = {
+                breed_name: document.getElementById('breedName').value,
+                category: document.getElementById('category').value,
+                description: document.getElementById('description').value,
+                baidu_url: document.getElementById('baiduUrl').value
+            };
+
+            try {
+                let result;
+                if (id) {
+                    result = await apiRequest(`/api/knowledge/${id}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    result = await apiRequest('/api/knowledge', {
+                        method: 'POST',
+                        body: JSON.stringify(data)
+                    });
+                }
+                alert(result.message);
+                if (result.success) {
+                    closeModal();
+                    loadKnowledge();
+                }
+            } catch (error) {
+                console.error('保存失败:', error);
+                alert('保存失败');
+            }
+        }
+
+        async function deleteKnowledge(id) {
+            if (!confirm('确定要删除这个品种吗？')) return;
+            try {
+                const result = await apiRequest(`/api/knowledge/${id}`, { method: 'DELETE' });
+                alert(result.message);
+                if (result.success) {
+                    loadKnowledge();
+                }
+            } catch (error) {
+                console.error('删除失败:', error);
+                alert('删除失败');
+            }
+        }
+
+        loadKnowledge();
+    </script>
+</body>
+</html>
